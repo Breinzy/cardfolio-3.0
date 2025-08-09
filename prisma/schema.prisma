@@ -1,0 +1,106 @@
+generator client { provider = "prisma-client-js" }
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum ProductType { SINGLE SEALED }
+
+model Product {
+  id           String         @id @default(cuid())
+  name         String
+  set          String?
+  number       String?
+  type         ProductType
+  sku          String?
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  holdings     Holding[]
+  txns         Transaction[]
+  prices       PriceSnapshot[]
+  realized     RealizedPnl[]
+
+  @@index([type, set])
+}
+
+model Holding {
+  id              String    @id @default(cuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id])
+  condition       String?
+  grade           String?
+  quantity        Int
+  costBasisTotal  Decimal   @db.Decimal(18, 2)
+  acquiredAt      DateTime?
+  source          String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  type        String    // buy|sell|fee|ship
+  qty         Int
+  unitPrice   Decimal   @db.Decimal(18, 2)
+  total       Decimal   @db.Decimal(18, 2)
+  fees        Decimal   @db.Decimal(18, 2) @default(0)
+  shipping    Decimal   @db.Decimal(18, 2) @default(0)
+  tax         Decimal   @db.Decimal(18, 2) @default(0)
+  netTotal    Decimal   @db.Decimal(18, 2) // buys: total+fees+shipping+tax; sells: proceeds-fees-shipping-tax
+  date        DateTime
+  marketplace String?
+  notes       String?
+  realized    RealizedPnl[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([type, date])
+}
+
+model PriceSnapshot {
+  id         String    @id @default(cuid())
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  source     String
+  price      Decimal   @db.Decimal(18, 2)
+  confidence Int
+  capturedAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+}
+
+// Persist realized P&L when a SELL consumes cost basis (FIFO)
+model RealizedPnl {
+  id                 String      @id @default(cuid())
+  productId          String
+  product            Product     @relation(fields: [productId], references: [id])
+  transactionId      String
+  transaction        Transaction @relation(fields: [transactionId], references: [id])
+  qty                Int
+  proceedsTotal      Decimal     @db.Decimal(18, 2)
+  feesTotal          Decimal     @db.Decimal(18, 2)
+  taxTotal           Decimal     @db.Decimal(18, 2)
+  shippingTotal      Decimal     @db.Decimal(18, 2)
+  costBasisAllocated Decimal     @db.Decimal(18, 2)
+  realizedPnl        Decimal     @db.Decimal(18, 2)
+  date               DateTime
+  createdAt          DateTime    @default(now())
+  @@index([date])
+}
+
+model Strategy {
+  id              String    @id @default(cuid())
+  risk            String
+  horizonYears    Int
+  monthlyBudget   Decimal   @db.Decimal(18, 2)
+  targetAllocJson String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+
