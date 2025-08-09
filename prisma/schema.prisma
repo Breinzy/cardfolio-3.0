@@ -1,11 +1,16 @@
-generator client { provider = "prisma-client-js" }
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
 
-enum ProductType { SINGLE SEALED }
+enum ProductType {
+  SINGLE
+  SEALED
+}
 
 model Product {
   id           String         @id @default(cuid())
@@ -33,7 +38,7 @@ model Holding {
   condition       String?
   grade           String?
   quantity        Int
-  costBasisTotal  Decimal   @db.Decimal(18, 2)
+  costBasisTotal  Decimal
   acquiredAt      DateTime?
   source          String?
   notes           String?
@@ -47,12 +52,12 @@ model Transaction {
   product     Product   @relation(fields: [productId], references: [id])
   type        String    // buy|sell|fee|ship
   qty         Int
-  unitPrice   Decimal   @db.Decimal(18, 2)
-  total       Decimal   @db.Decimal(18, 2)
-  fees        Decimal   @db.Decimal(18, 2) @default(0)
-  shipping    Decimal   @db.Decimal(18, 2) @default(0)
-  tax         Decimal   @db.Decimal(18, 2) @default(0)
-  netTotal    Decimal   @db.Decimal(18, 2) // buys: total+fees+shipping+tax; sells: proceeds-fees-shipping-tax
+  unitPrice   Decimal
+  total       Decimal
+  fees        Decimal    @default(0)
+  shipping    Decimal    @default(0)
+  tax         Decimal    @default(0)
+  netTotal    Decimal    // buys: total+fees+shipping+tax; sells: proceeds-fees-shipping-tax
   date        DateTime
   marketplace String?
   notes       String?
@@ -68,7 +73,7 @@ model PriceSnapshot {
   productId  String
   product    Product   @relation(fields: [productId], references: [id])
   source     String
-  price      Decimal   @db.Decimal(18, 2)
+  price      Decimal
   confidence Int
   capturedAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
@@ -82,12 +87,12 @@ model RealizedPnl {
   transactionId      String
   transaction        Transaction @relation(fields: [transactionId], references: [id])
   qty                Int
-  proceedsTotal      Decimal     @db.Decimal(18, 2)
-  feesTotal          Decimal     @db.Decimal(18, 2)
-  taxTotal           Decimal     @db.Decimal(18, 2)
-  shippingTotal      Decimal     @db.Decimal(18, 2)
-  costBasisAllocated Decimal     @db.Decimal(18, 2)
-  realizedPnl        Decimal     @db.Decimal(18, 2)
+  proceedsTotal      Decimal
+  feesTotal          Decimal
+  taxTotal           Decimal
+  shippingTotal      Decimal
+  costBasisAllocated Decimal
+  realizedPnl        Decimal
   date               DateTime
   createdAt          DateTime    @default(now())
   @@index([date])
@@ -97,7 +102,7 @@ model Strategy {
   id              String    @id @default(cuid())
   risk            String
   horizonYears    Int
-  monthlyBudget   Decimal   @db.Decimal(18, 2)
+  monthlyBudget   Decimal
   targetAllocJson String
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
