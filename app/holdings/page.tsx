@@ -91,19 +91,19 @@ export default function HoldingsPage() {
   if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
-    <main className="p-6">
+    <main className="p-6 text-black dark:text-white">
       <h1 className="text-xl font-semibold mb-4">Holdings</h1>
       <AddHoldingForm
         onCreated={(h) => setData((d) => [h, ...d])}
       />
       <div className="h-4" />
       <div className="overflow-x-auto border rounded-2xl">
-        <table className="min-w-full text-sm">
+        <table className="min-w-full text-sm text-black dark:text-white">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((h) => (
-                  <th key={h.id} className="text-left p-2 border-b">
+                  <th key={h.id} className="text-left p-2 border-b bg-black text-white dark:bg-zinc-800 dark:text-white">
                     {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                   </th>
                 ))}
@@ -112,9 +112,9 @@ export default function HoldingsPage() {
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="odd:bg-gray-50">
+              <tr key={row.id} className="bg-white dark:bg-zinc-900">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-2 border-b">
+                  <td key={cell.id} className="p-2 border-b border-gray-200 dark:border-zinc-800">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
