@@ -45,6 +45,7 @@ export async function createHolding(input: {
       acquiredAt: input.acquiredAt ?? undefined,
       source: input.source ?? undefined,
     },
+    include: { product: true },
   });
 }
 
@@ -66,6 +67,7 @@ export async function updateHolding(id: string, input: {
       acquiredAt: input.acquiredAt ?? undefined,
       source: input.source ?? undefined,
     },
+    include: { product: true },
   });
 }
 

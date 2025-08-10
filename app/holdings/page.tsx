@@ -93,6 +93,10 @@ export default function HoldingsPage() {
   return (
     <main className="p-6">
       <h1 className="text-xl font-semibold mb-4">Holdings</h1>
+      <AddHoldingForm
+        onCreated={(h) => setData((d) => [h, ...d])}
+      />
+      <div className="h-4" />
       <div className="overflow-x-auto border rounded-2xl">
         <table className="min-w-full text-sm">
           <thead>
@@ -129,9 +133,10 @@ function InlineNumber({ value, onSave }: { value: number; onSave: (v: number) =>
   return (
     <div className="flex items-center gap-2">
       <input
-        className="border rounded px-2 py-1 w-24"
+        className="border rounded px-2 py-1 w-24 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700 placeholder-gray-400"
         value={val}
         onChange={(e) => setVal(e.target.value)}
+        placeholder="0"
       />
       <button
         className="px-2 py-1 rounded bg-black text-white disabled:opacity-60"
@@ -144,6 +149,94 @@ function InlineNumber({ value, onSave }: { value: number; onSave: (v: number) =>
       >
         Save
       </button>
+    </div>
+  );
+}
+
+function AddHoldingForm({ onCreated }: { onCreated: (h: Holding) => void }) {
+  const [productName, setProductName] = useState("");
+  const [productType, setProductType] = useState<"SINGLE" | "SEALED">("SINGLE");
+  const [quantity, setQuantity] = useState("1");
+  const [cost, setCost] = useState("0");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  return (
+    <div className="p-4 border rounded-2xl flex flex-wrap items-end gap-3">
+      <div className="flex flex-col">
+        <label className="text-xs">Product</label>
+        <input
+          className="border rounded px-2 py-1 w-64 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700 placeholder-gray-400"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+          placeholder="Name"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-xs">Type</label>
+        <select
+          className="border rounded px-2 py-1 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700"
+          value={productType}
+          onChange={(e) => setProductType(e.target.value === "SEALED" ? "SEALED" : "SINGLE")}
+        >
+          <option value="SINGLE">SINGLE</option>
+          <option value="SEALED">SEALED</option>
+        </select>
+      </div>
+      <div className="flex flex-col">
+        <label className="text-xs">Qty</label>
+        <input
+          type="number"
+          min={0}
+          className="border rounded px-2 py-1 w-24 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-xs">Cost</label>
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          className="border rounded px-2 py-1 w-32 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700"
+          value={cost}
+          onChange={(e) => setCost(e.target.value)}
+        />
+      </div>
+      <button
+        className="px-3 py-2 rounded bg-black text-white disabled:opacity-60"
+        disabled={saving || !productName}
+        onClick={async () => {
+          try {
+            setSaving(true);
+            setErr(null);
+            const res = await fetch("/api/holdings", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                productName,
+                productType,
+                quantity: Number(quantity),
+                costBasisTotal: Number(cost),
+              }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const created = await res.json();
+            onCreated(created);
+            setProductName("");
+            setQuantity("1");
+            setCost("0");
+          } catch (e) {
+            setErr((e as Error).message);
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        Add
+      </button>
+      {err && <div className="text-red-600 text-xs">{err}</div>}
     </div>
   );
 }
