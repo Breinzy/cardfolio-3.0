@@ -19,6 +19,8 @@ export default function FileDrop() {
             const res = await fetch("/api/import/holdings", { method: "POST", body: text });
             const json = await res.json();
             setResult(JSON.stringify(json, null, 2));
+            // naive refresh to reflect new rows
+            try { location.reload(); } catch {}
           } catch (e) {
             setErr((e as Error).message);
           }
