@@ -12,7 +12,7 @@ type Strategy = {
 };
 
 export default function StrategyPage() {
-  const [strategy, setStrategy] = useState<Strategy | null>(null);
+  const [, setStrategy] = useState<Strategy | null>(null);
   const [form, setForm] = useState({ risk: "med", horizonYears: 5, monthlyBudget: 500, targetAllocJson: "{}" });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

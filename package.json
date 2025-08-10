@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "clean": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\"",
-    "test": "vitest"
+    "test": "vitest",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",

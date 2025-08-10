@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Cardfolio 3.0 — local-first portfolio tracker for TCG singles & sealed.
 
 ## Getting Started
 
@@ -18,7 +18,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Key routes: `/`, `/holdings`, `/transactions`, `/strategy`.
+
+APIs: `/api/holdings`, `/api/transactions`, `/api/strategy`, `/api/advice`, `/api/metrics/roi`, `/api/import/holdings`, `/api/export`.
 
 ## Prisma
 
@@ -27,6 +29,22 @@ npx prisma migrate dev --name init
 npx prisma db seed
 npx prisma studio
 ```
+
+## Environment
+
+Create `.env.local`:
+
+```
+AI_MONTHLY_CAP_DOLLARS=5
+DATABASE_URL="file:./prisma/dev.db"
+```
+
+## Architecture
+
+- `app/` UI + API routes
+- `components/` client components (AdvisorPanel, RoiChart, FileDrop)
+- `lib/` shared logic: Prisma client, holdings/summary, transactions FIFO/service, advisor, ai router, metrics
+- `prisma/` schema and seed
 
 ## Learn More
 
