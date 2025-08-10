@@ -1,7 +1,7 @@
 import { prisma } from "./db";
 
 export async function listHoldings() {
-  return prisma.holding.findMany({ include: { product: true } });
+  return prisma.holding.findMany({ include: { product: true }, orderBy: { createdAt: "desc" } });
 }
 
 export async function createHolding(input: {

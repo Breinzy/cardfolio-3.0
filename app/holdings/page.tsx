@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import FileDrop from "@/components/file-drop";
+import { ColumnDef, SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 
 type Holding = {
   id: string;
-  product: { name: string };
+  product: { name: string; type: "SINGLE" | "SEALED" };
   condition: string | null;
   grade: string | null;
   quantity: number;
@@ -16,6 +17,9 @@ export default function HoldingsPage() {
   const [data, setData] = useState<Holding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"ALL" | "SINGLE" | "SEALED">("ALL");
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     (async () => {
@@ -34,10 +38,12 @@ export default function HoldingsPage() {
 
   const columns = useMemo<ColumnDef<Holding>[]>(
     () => [
-      { header: "Product", accessorFn: (row) => row.product.name },
+      { header: "Product", accessorFn: (row) => row.product.name, enableSorting: true },
+      { header: "Type", accessorFn: (row) => row.product.type, enableSorting: true },
       {
         header: "Qty",
         accessorKey: "quantity",
+        enableSorting: true,
         cell: ({ row, getValue }) => (
           <InlineNumber
             value={Number(getValue())}
@@ -48,6 +54,7 @@ export default function HoldingsPage() {
       {
         header: "Cost",
         accessorKey: "costBasisTotal",
+        enableSorting: true,
         cell: ({ row, getValue }) => (
           <InlineNumber
             value={Number(getValue())}
@@ -73,7 +80,23 @@ export default function HoldingsPage() {
     []
   );
 
-  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
+  const filtered = useMemo(() => {
+    return data.filter((h) => {
+      const byType = typeFilter === "ALL" || h.product.type === typeFilter;
+      const byText = search.trim() === "" || h.product.name.toLowerCase().includes(search.toLowerCase());
+      return byType && byText;
+    });
+  }, [data, search, typeFilter]);
+
+  const table = useReactTable({
+    data: filtered,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
+  });
 
   async function save(id: string, patch: Partial<Pick<Holding, "quantity" | "costBasisTotal">>) {
     const res = await fetch(`/api/holdings/${id}`, {
@@ -93,6 +116,22 @@ export default function HoldingsPage() {
   return (
     <main className="p-6 text-black dark:text-white">
       <h1 className="text-xl font-semibold mb-4">Holdings</h1>
+      <FileDrop />
+      <div className="h-4" />
+      <div className="flex flex-wrap items-end gap-3 mb-3">
+        <label className="grid gap-1 text-sm">
+          <span className="text-xs">Search</span>
+          <input className="border rounded px-2 py-1 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Product name" />
+        </label>
+        <label className="grid gap-1 text-sm">
+          <span className="text-xs">Type</span>
+          <select className="border rounded px-2 py-1 bg-white text-black dark:bg-zinc-900 dark:text-white border-gray-300 dark:border-gray-700" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value === "SINGLE" ? "SINGLE" : e.target.value === "SEALED" ? "SEALED" : "ALL")}>
+            <option value="ALL">ALL</option>
+            <option value="SINGLE">SINGLE</option>
+            <option value="SEALED">SEALED</option>
+          </select>
+        </label>
+      </div>
       <AddHoldingForm
         onCreated={(h) => setData((d) => [h, ...d])}
       />
@@ -103,8 +142,14 @@ export default function HoldingsPage() {
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((h) => (
-                  <th key={h.id} className="text-left p-2 border-b bg-black text-white dark:bg-zinc-800 dark:text-white">
-                    {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                  <th key={h.id} className="text-left p-2 border-b bg-black text-white dark:bg-zinc-800 dark:text-white cursor-pointer select-none" onClick={h.column.getToggleSortingHandler?.()}>
+                    {h.isPlaceholder ? null : (
+                      <div className="flex items-center gap-2">
+                        {flexRender(h.column.columnDef.header, h.getContext())}
+                        {h.column.getIsSorted() === "asc" && <span>▲</span>}
+                        {h.column.getIsSorted() === "desc" && <span>▼</span>}
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>
@@ -129,6 +174,9 @@ export default function HoldingsPage() {
 
 function InlineNumber({ value, onSave }: { value: number; onSave: (v: number) => Promise<void> }) {
   const [val, setVal] = useState<string>(String(value));
+  React.useEffect(() => {
+    setVal(String(value));
+  }, [value]);
   const [saving, setSaving] = useState(false);
   return (
     <div className="flex items-center gap-2">

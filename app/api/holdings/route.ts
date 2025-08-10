@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     condition: body.condition ?? undefined,
     grade: body.grade ?? undefined,
     quantity: body.quantity,
-    costBasisTotal: body.costBasisTotal,
+    costBasisTotal: Number(body.costBasisTotal),
     acquiredAt: body.acquiredAt ? new Date(body.acquiredAt) : undefined,
     source: body.source ?? undefined,
   });
