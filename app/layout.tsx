@@ -24,10 +24,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <div style={{ backgroundColor: "#0b0f14", color: "#e6edf3" }}>
+          <div style={{ minHeight: "100vh" }}>
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );
