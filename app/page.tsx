@@ -1,11 +1,8 @@
 import { getDashboardSummary } from "@/lib/summary";
-import AdvisorPanel from "@/components/advisor-panel";
-import RoiChart from "@/components/roi-chart";
-import { buildRoiSeries } from "@/lib/metrics/roi";
+// UI stabilization: show only value cards on dashboard
 
 export default async function Page() {
   const summary = await getDashboardSummary();
-  const series = await buildRoiSeries("month");
   return (
     <main className="p-6 space-y-6">
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -13,13 +10,6 @@ export default async function Page() {
         <Card title="Est Value" value={summary.estValue} />
         <Card title="P/L" value={summary.pnl} />
       </section>
-
-      <section className="space-y-2">
-        <h2 className="text-lg font-semibold">ROI</h2>
-        <RoiChart data={series} />
-      </section>
-
-      <AdvisorPanel />
     </main>
   );
 }
